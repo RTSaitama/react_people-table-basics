@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { Loader } from '../components/Loader';
 import { getPeople } from '../api';
 import { Person } from '../types';
+import { useParams } from 'react-router-dom';
+import cn from 'classnames';
+
 import {
   PersonLink,
   FatherLink,
@@ -10,66 +13,62 @@ import {
 
 export const PeoplePage = () => {
   const [people, setPeople] = useState<Person[] | null>(null);
-  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
-
-  const onHandleSelectPerson = (person: Person) => {
-    setSelectedPerson(person);
-  };
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const { selectedSlug } = useParams();
 
   useEffect(() => {
-    const fetchPeople = async () => {
-      const data = await getPeople();
+    setIsLoading(true);
+    setError(false);
 
-      setPeople(data);
-    };
-
-    fetchPeople();
+    getPeople()
+      .then(setPeople)
+      .catch(() => setError(true))
+      .finally(() => setIsLoading(false));
   }, []);
-  // const peopleWithParents = people?.map(child => {
-  //   const father =people.find(child.)
-  //   const mother =
-  // })
 
   return (
     <>
       <h1 className="title">People Page</h1>
       <div className="block">
         <div className="box table-container">
-          {people === null && <Loader />}
+          {isLoading && <Loader />}
 
-          {/* {!people && (
+          {error && (
             <p data-cy="peopleLoadingError" className="has-text-danger">
               Something went wrong
             </p>
-          )} */}
+          )}
 
           {people?.length === 0 && (
             <p data-cy="noPeopleMessage">There are no people on the server</p>
           )}
 
-          <table
-            data-cy="peopleTable"
-            className="table is-striped is-hoverable is-narrow is-fullwidth"
-          >
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Sex</th>
-                <th>Born</th>
-                <th>Died</th>
-                <th>Mother</th>
-                <th>Father</th>
-              </tr>
-            </thead>
+          {people && people.length > 0 && (
+            <table
+              data-cy="peopleTable"
+              className="table is-striped is-hoverable is-narrow is-fullwidth"
+            >
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Sex</th>
+                  <th>Born</th>
+                  <th>Died</th>
+                  <th>Mother</th>
+                  <th>Father</th>
+                </tr>
+              </thead>
 
-            <tbody>
-              {people &&
-                people.map(person => {
+              <tbody>
+                {people?.map(person => {
                   return (
                     <tr
                       data-cy="person"
                       key={person.slug}
-                      className="has-background-warning"
+                      className={cn('', {
+                        'has-background-warning': selectedSlug === person.slug,
+                      })}
                     >
                       <td>
                         <PersonLink person={person} />
@@ -79,24 +78,16 @@ export const PeoplePage = () => {
                       <td>{person.born}</td>
                       <td>{person.died}</td>
                       <td>
-                        <MotherLink
-                          name={person.motherName}
-                          people={people}
-                          onClick={onHandleSelectPerson}
-                        />
+                        <MotherLink name={person.motherName} people={people} />
                       </td>
 
                       <td>
-                        <FatherLink
-                          name={person.fatherName}
-                          people={people}
-                          onClick={onHandleSelectPerson}
-                        />
+                        <FatherLink name={person.fatherName} people={people} />
                       </td>
                     </tr>
                   );
                 })}
-              {/* <tr data-cy="person">
+                {/* <tr data-cy="person">
               <td>
                 <a href="#/people/jan-van-brussel-1714">Jan van Brussel</a>
               </td>
@@ -195,8 +186,9 @@ export const PeoplePage = () => {
                 </a>
               </td>
             </tr> */}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </>

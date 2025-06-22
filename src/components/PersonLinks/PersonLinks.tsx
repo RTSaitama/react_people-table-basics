@@ -4,7 +4,6 @@ import { Person } from '../../types';
 
 type PersonLinkProps = {
   person: Person;
-  onClick?: (person: Person) => void;
 };
 
 export const PersonLink: FC<PersonLinkProps> = ({ person }) => (
@@ -19,25 +18,26 @@ export const PersonLink: FC<PersonLinkProps> = ({ person }) => (
 type RelativeLinkProps = {
   name: string | null;
   people: Person[];
-  onClick: (person: Person) => void;
 };
 
-export const MotherLink: FC<RelativeLinkProps> = ({
-  name,
-  people,
-  onClick,
-}) => {
-  const mother = people.find(p => p.name === name);
+const DEFAULT = '-';
 
-  return mother ? <PersonLink person={mother} onClick={onClick} /> : '-';
+export const MotherLink: FC<RelativeLinkProps> = ({ name, people }) => {
+  if (!name) {
+    return DEFAULT;
+  }
+
+  const mother = people.find(p => p.name.toLowerCase() === name?.toLowerCase());
+
+  return mother ? <PersonLink person={mother} /> : name;
 };
 
-export const FatherLink: FC<RelativeLinkProps> = ({
-  name,
-  people,
-  onClick,
-}) => {
-  const father = people.find(p => p.name === name);
+export const FatherLink: FC<RelativeLinkProps> = ({ name, people }) => {
+  if (!name) {
+    return DEFAULT;
+  }
 
-  return father ? <PersonLink person={father} onClick={onClick} /> : '-';
+  const father = people.find(p => p.name.toLowerCase() === name?.toLowerCase());
+
+  return father ? <PersonLink person={father} /> : name;
 };
